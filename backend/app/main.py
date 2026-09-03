@@ -111,11 +111,11 @@ if not origins:
         "http://127.0.0.1:5173",
     ]
 
-# Allow any onrender.com subdomain and local development origins by regex
+# Allow any pages.dev (Cloudflare Pages), onrender.com subdomain, and local development origins by regex
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_origin_regex=r"https://.*\.onrender\.com|http://(localhost|127\.0\.0\.1):\d+",
+    allow_origin_regex=r"https://.*\.pages\.dev|https://.*\.onrender\.com|http://(localhost|127\.0\.0\.1):\d+",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
