@@ -124,6 +124,17 @@ app.add_middleware(
 # Mount API routes
 app.include_router(api_router)
 
+@app.api_route("/", methods=["GET", "HEAD"], tags=["System"])
+def root():
+    """Root status endpoint for container health probes and root domain inspection."""
+    return {
+        "status": "online",
+        "service": "AI Forensics Timeline Reconstruction API",
+        "docs": "/docs",
+        "health": "/health",
+        "database": "connected"
+    }
+
 @app.get("/health", tags=["System"])
 def health_check():
     """System health check endpoint."""
