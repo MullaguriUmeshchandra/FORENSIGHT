@@ -13,20 +13,27 @@ class Neo4jClient:
     """Client wrapper for Neo4j graph operations with fault-tolerant local fallback."""
 
     def __init__(self):
-        self.uri = os.getenv("NEO4J_URI", "bolt://localhost:7687")
+        self.uri = os.getenv("NEO4J_URI")
         self.user = os.getenv("NEO4J_USER", "neo4j")
         self.password = os.getenv("NEO4J_PASSWORD", "forensics_neo4j_password")
         self._driver: Optional[Driver] = None
         self._is_available: Optional[bool] = None
 
     def connect(self) -> bool:
+        if not self.uri:
+            self._is_available = False
+            return False
         if not HAS_NEO4J:
             self._is_available = False
             return False
         if self._driver is not None and self._is_available:
             return True
         try:
-            self._driver = GraphDatabase.driver(self.uri, auth=(self.user, self.password))
+            self._driver = GraphDatabase.driver(
+                self.uri,
+                auth=(self.user, self.password),
+                connection_timeout=5,
+            )
             with self._driver.session() as session:
                 session.run("RETURN 1 AS test")
             self._is_available = True
