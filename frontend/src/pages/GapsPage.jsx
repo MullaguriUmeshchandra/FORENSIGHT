@@ -17,7 +17,11 @@ export const GapsPage = () => {
   const [selectedGap, setSelectedGap] = useState(null);
 
   const fetchGaps = async () => {
-    if (!currentCase) return;
+    if (!currentCase) {
+      setLoading(false);
+      setGapData({ gaps: [], total_gaps: 0 });
+      return;
+    }
     setLoading(true);
     setError(null);
     try {

@@ -17,11 +17,15 @@ from app.schemas.report import ReportCreate, ReportResponse, ReportListResponse
 from app.services.activity_service import ActivityService
 from app.utils.logger import logger
 
-# ReportLab imports for PDF generation
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib import colors
+# ReportLab imports for PDF generation (Optional/Resilient)
+try:
+    from reportlab.lib.pagesizes import letter
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib import colors
+    HAS_REPORTLAB = True
+except ImportError:
+    HAS_REPORTLAB = False
 
 class ReportService:
     """Service to generate defensible Markdown and ReportLab PDF forensic investigation reports."""
@@ -37,6 +41,11 @@ class ReportService:
         recommendations: List[Recommendation]
     ) -> None:
         """Generate PDF document using ReportLab."""
+        if not HAS_REPORTLAB:
+            raise HTTPException(
+                status_code=status.HTTP_501_NOT_IMPLEMENTED,
+                detail="PDF report generation requires 'reportlab'. Please install reportlab or export as Markdown format."
+            )
         doc = SimpleDocTemplate(
             str(pdf_path),
             pagesize=letter,

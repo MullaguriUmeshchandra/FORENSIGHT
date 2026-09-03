@@ -15,7 +15,11 @@ export const RecommendationsPage = () => {
   const [error, setError] = useState(null);
 
   const fetchRecommendations = async () => {
-    if (!currentCase) return;
+    if (!currentCase) {
+      setLoading(false);
+      setRecommendations([]);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {

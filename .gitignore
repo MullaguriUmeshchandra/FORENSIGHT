@@ -54,4 +54,7 @@ Thumbs.db
 # Uploads and reports (user data)
 uploads/
 reports/
-data/
+data/*.db
+data/*.sqlite
+!data/samples/
+!data/seed_sample_case.py

@@ -1,0 +1,8 @@
+timestamp,event_type,device,event_description,source_ip,user_id
+2026-08-30T10:00:15Z,USER_LOGON,WORKSTATION-01,User jdoe interactive logon successful (LogonType: 2, Domain: CORP),192.168.1.105,jdoe
+2026-08-30T10:05:22Z,PRIVILEGE_ELEVATION,WORKSTATION-01,Special privileges assigned to new logon session (SeDebugPrivilege, SeTcbPrivilege),192.168.1.105,jdoe
+2026-08-30T10:12:40Z,PROCESS_CREATION,WORKSTATION-01,Process powershell.exe created with PID 4120 by explorer.exe (Parent PID 1240),192.168.1.105,jdoe
+2026-08-30T10:18:05Z,REGISTRY_MODIFICATION,WORKSTATION-01,HKLM\System\CurrentControlSet\Services\AuditLog modified to disable security tracking,192.168.1.105,SYSTEM
+2026-08-30T10:28:10Z,AUDIT_LOG_CLEARED,WORKSTATION-01,The security event log was intentionally cleared by user administrator (Event ID 1102),192.168.1.105,jdoe
+2026-08-30T10:41:30Z,SERVICE_STARTED,WORKSTATION-01,Service 'SysMain' entered the running state,192.168.1.105,SYSTEM
+2026-08-30T10:45:12Z,USER_LOGOFF,WORKSTATION-01,User jdoe initiated session termination and logoff,192.168.1.105,jdoe

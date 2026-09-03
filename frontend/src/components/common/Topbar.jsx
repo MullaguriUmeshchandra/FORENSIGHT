@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useCase } from '../../context/CaseContext';
-import { Menu, User as UserIcon, LogOut, ChevronDown, FolderOpen, RefreshCw } from 'lucide-react';
+import { Menu, User as UserIcon, LogOut, ChevronDown, FolderOpen, RefreshCw, FolderPlus } from 'lucide-react';
+import CreateCaseModal from './CreateCaseModal';
 
 export const Topbar = ({ setMobileOpen }) => {
   const { user, logout } = useAuth();
   const { cases, currentCase, selectCase, triggerRefresh, loading } = useCase();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-4 bg-white border-b border-slate-200 shadow-sm md:px-8">
       {/* Left Area: Mobile Menu + Case Selector */}
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-3 sm:space-x-4">
         <button
           onClick={() => setMobileOpen(true)}
           className="p-2 rounded-lg text-slate-600 hover:bg-slate-100 md:hidden"
@@ -27,7 +29,7 @@ export const Topbar = ({ setMobileOpen }) => {
           <select
             value={currentCase ? currentCase.id : ''}
             onChange={(e) => selectCase(e.target.value)}
-            className="py-1.5 px-3 bg-slate-50 border border-slate-300 text-slate-800 text-xs rounded-lg font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all cursor-pointer max-w-[200px] sm:max-w-[280px]"
+            className="py-1.5 px-2.5 sm:px-3 bg-slate-50 border border-slate-300 text-slate-800 text-xs rounded-lg font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all cursor-pointer max-w-[150px] sm:max-w-[280px]"
           >
             {cases.length === 0 ? (
               <option value="">No Cases Found</option>
@@ -40,6 +42,16 @@ export const Topbar = ({ setMobileOpen }) => {
             )}
           </select>
         </div>
+
+        {/* + New Case Button */}
+        <button
+          onClick={() => setCreateModalOpen(true)}
+          className="inline-flex items-center px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold rounded-lg border border-blue-200 transition-colors shadow-xs"
+          title="Create New Forensic Case"
+        >
+          <FolderPlus className="w-3.5 h-3.5 sm:mr-1 text-blue-600" />
+          <span className="hidden sm:inline">New Case</span>
+        </button>
 
         {/* Global Manual Sync Button */}
         <button
@@ -98,6 +110,12 @@ export const Topbar = ({ setMobileOpen }) => {
           </>
         )}
       </div>
+
+      {/* Case Creation Modal */}
+      <CreateCaseModal
+        isOpen={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+      />
     </header>
   );
 };

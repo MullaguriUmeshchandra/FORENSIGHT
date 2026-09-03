@@ -1,6 +1,12 @@
 import os
 from typing import Optional, List, Dict, Any
-from neo4j import GraphDatabase, Driver
+try:
+    from neo4j import GraphDatabase, Driver
+    HAS_NEO4J = True
+except ImportError:
+    GraphDatabase = None
+    Driver = Any
+    HAS_NEO4J = False
 from app.utils.logger import logger
 
 class Neo4jClient:
@@ -14,6 +20,9 @@ class Neo4jClient:
         self._is_available: Optional[bool] = None
 
     def connect(self) -> bool:
+        if not HAS_NEO4J:
+            self._is_available = False
+            return False
         if self._driver is not None and self._is_available:
             return True
         try:

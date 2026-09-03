@@ -18,7 +18,12 @@ export const TimelinePage = () => {
   const [selectedEvent, setSelectedEvent] = useState(null);
 
   const fetchTimelineData = async () => {
-    if (!currentCase) return;
+    if (!currentCase) {
+      setLoading(false);
+      setEvents([]);
+      setGaps([]);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {

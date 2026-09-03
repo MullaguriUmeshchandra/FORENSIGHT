@@ -1,0 +1,4 @@
+timestamp,event_type,device,event_description,protocol,src_ip,dest_ip,dest_port,bytes_sent
+2026-08-30T10:01:05Z,NETWORK_CONNECTION,WORKSTATION-01,Outbound TCP session established to Domain Controller,TCP,192.168.1.105,192.168.1.10,389,1420
+2026-08-30T10:21:50Z,DATA_EXFILTRATION_STREAM,WORKSTATION-01,High-volume encrypted TLS transfer to public cloud hosting,TCP,192.168.1.105,104.18.24.112,443,47432810
+2026-08-30T10:26:15Z,NETWORK_DISCONNECT,WORKSTATION-01,Network adapter disconnected by user software toggle,ETH,192.168.1.105,0.0.0.0,0,0

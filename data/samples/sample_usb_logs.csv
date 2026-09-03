@@ -1,0 +1,4 @@
+timestamp,event_type,device,event_description,vendor_id,serial_number,volume_label
+2026-08-30T10:10:02Z,USB_DEVICE_INSERTED,WORKSTATION-01,SanDisk Ultra USB 3.0 mass storage device connected,0781,4C531001560719115254,BACKUP_DRIVE
+2026-08-30T10:11:15Z,FILE_COPY_TO_REMOVABLE,WORKSTATION-01,Copied 348 internal financial database spreadsheets to E:\Sensitive_Ledgers\,0781,4C531001560719115254,BACKUP_DRIVE
+2026-08-30T10:25:40Z,USB_DEVICE_REMOVED,WORKSTATION-01,SanDisk Ultra USB 3.0 safely disconnected and unmounted,0781,4C531001560719115254,BACKUP_DRIVE

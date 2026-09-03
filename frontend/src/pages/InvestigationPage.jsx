@@ -22,7 +22,14 @@ export const InvestigationPage = () => {
   const [explainItem, setExplainItem] = useState(null);
 
   const fetchInvestigationData = async () => {
-    if (!currentCase) return;
+    if (!currentCase) {
+      setLoading(false);
+      setGraphData(null);
+      setContradictions([]);
+      setGaps([]);
+      setTimelineEvents([]);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {

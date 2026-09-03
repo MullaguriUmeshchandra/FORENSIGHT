@@ -1,7 +1,14 @@
 import os
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any
-from jose import JWTError, jwt
+try:
+    from jose import JWTError, jwt
+except ImportError:
+    import jwt
+    try:
+        from jwt.exceptions import PyJWTError as JWTError
+    except ImportError:
+        JWTError = Exception
 from app.schemas.auth import TokenData
 from app.utils.logger import logger
 

@@ -9,9 +9,19 @@ from app.utils.logger import logger
 # Default to SQLite local database if DATABASE_URL is not set or if Postgres is unreachable
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./forensics.db")
 
+# Render provides PostgreSQL connection strings starting with postgres:// which SQLAlchemy 2.x requires as postgresql://
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
 connect_args = {}
 if DATABASE_URL.startswith("sqlite"):
     connect_args = {"check_same_thread": False}
+    # Ensure SQLite directory exists
+    db_file = DATABASE_URL.replace("sqlite:///", "")
+    if db_file and db_file != ":memory:":
+        db_path = Path(db_file)
+        if db_path.parent and not db_path.parent.exists():
+            db_path.parent.mkdir(parents=True, exist_ok=True)
 
 try:
     engine = create_engine(

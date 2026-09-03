@@ -1,6 +1,11 @@
 import axios from 'axios';
 
-const API_BASE_URL = '/api';
+const rawBaseUrl = import.meta.env.VITE_API_BASE_URL || '/api';
+let cleanBaseUrl = rawBaseUrl.endsWith('/') ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
+if (cleanBaseUrl.startsWith('http') && !cleanBaseUrl.endsWith('/api')) {
+  cleanBaseUrl = `${cleanBaseUrl}/api`;
+}
+const API_BASE_URL = cleanBaseUrl;
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -93,7 +98,11 @@ export const investigationAPI = {
 export const reportAPI = {
   getReports: (caseId) => api.get(`/reports?case_id=${caseId}`),
   generateReport: (caseId, title, format = 'MARKDOWN') => api.post('/reports', { case_id: caseId, title, report_format: format }),
-  getDownloadUrl: (id) => `${API_BASE_URL}/reports/${id}/download`,
+  downloadReport: (id) => api.get(`/reports/${id}/download`, { responseType: 'blob' }),
+  getDownloadUrl: (id) => {
+    const token = localStorage.getItem('forensics_token');
+    return `${API_BASE_URL}/reports/${id}/download${token ? `?token=${encodeURIComponent(token)}` : ''}`;
+  },
 };
 
 export default api;

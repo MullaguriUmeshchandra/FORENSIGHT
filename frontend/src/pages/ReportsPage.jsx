@@ -21,7 +21,11 @@ export const ReportsPage = () => {
   const [reportFormat, setReportFormat] = useState('MARKDOWN');
 
   const fetchReports = async () => {
-    if (!currentCase) return;
+    if (!currentCase) {
+      setLoading(false);
+      setReports([]);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -56,9 +60,29 @@ export const ReportsPage = () => {
     }
   };
 
-  const handleDownload = (reportId) => {
-    const url = reportAPI.getDownloadUrl(reportId);
-    window.open(url, '_blank');
+  const handleDownload = async (report) => {
+    const reportId = typeof report === 'object' ? report.id : report;
+    const format = typeof report === 'object' ? report.report_format : 'MARKDOWN';
+    const title = typeof report === 'object' ? report.title : `report_${reportId}`;
+
+    try {
+      const res = await reportAPI.downloadReport(reportId);
+      const ext = format === 'JSON' ? 'json' : format === 'PDF' ? 'pdf' : 'md';
+      const cleanTitle = title.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 40);
+      const blob = new Blob([res.data]);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${cleanTitle}.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.warn('Direct blob download failed, trying authenticated link fallback:', err);
+      const directUrl = reportAPI.getDownloadUrl(reportId);
+      window.open(directUrl, '_blank');
+    }
   };
 
   return (
@@ -136,7 +160,7 @@ export const ReportsPage = () => {
                     <Eye className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => handleDownload(rep.id)}
+                    onClick={() => handleDownload(rep)}
                     className="p-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
                     title="Download report file"
                   >
@@ -220,7 +244,7 @@ export const ReportsPage = () => {
                 <span className="text-[11px] text-slate-400 font-mono">Case ID: {viewReport.case_id}</span>
               </div>
               <button
-                onClick={() => handleDownload(viewReport.id)}
+                onClick={() => handleDownload(viewReport)}
                 className="inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors"
               >
                 <Download className="w-3.5 h-3.5 mr-1.5" />

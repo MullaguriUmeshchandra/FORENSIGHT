@@ -1,0 +1,42 @@
+[
+  {
+    "timestamp": "2026-08-30T10:02:10Z",
+    "event_type": "BROWSER_SEARCH",
+    "event_description": "Search query: 'how to delete event viewer logs permanently without trace'",
+    "device": "WORKSTATION-01",
+    "url": "https://www.google.com/search?q=how+to+delete+event+viewer+logs",
+    "browser": "Chrome/128.0"
+  },
+  {
+    "timestamp": "2026-08-30T10:08:45Z",
+    "event_type": "BROWSER_NAVIGATION",
+    "event_description": "Visited file upload portal https://mega.nz/upload for cloud storage",
+    "device": "WORKSTATION-01",
+    "url": "https://mega.nz/upload",
+    "browser": "Chrome/128.0"
+  },
+  {
+    "timestamp": "2026-08-30T10:14:18Z",
+    "event_type": "BROWSER_DOWNLOAD",
+    "event_description": "Downloaded tool 'sdelete64.exe' from Sysinternals repository",
+    "device": "WORKSTATION-01",
+    "url": "https://download.sysinternals.com/files/SDelete.zip",
+    "browser": "Chrome/128.0"
+  },
+  {
+    "timestamp": "2026-08-30T10:22:04Z",
+    "event_type": "CLOUD_FILE_UPLOAD",
+    "event_description": "Encrypted archive 'Q3_Financial_Projections_Confidential.7z' uploaded to MegaCloud (45.2 MB)",
+    "device": "WORKSTATION-01",
+    "url": "https://mega.nz/file/transfer_complete",
+    "browser": "Chrome/128.0"
+  },
+  {
+    "timestamp": "2026-08-30T10:43:50Z",
+    "event_type": "BROWSER_CLEARED",
+    "event_description": "Browser cache, cookies, and history cleared by user command",
+    "device": "WORKSTATION-01",
+    "url": "chrome://settings/clearBrowserData",
+    "browser": "Chrome/128.0"
+  }
+]

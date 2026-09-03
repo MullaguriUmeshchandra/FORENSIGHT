@@ -125,3 +125,14 @@ To seed and analyze the sample case with pre-loaded evidence files:
 5. **Gap & Contradiction Analysis**: Go to `/gaps` and `/investigation` to inspect mathematically computed gap severities and cross-source evidence conflicts.
 6. **Knowledge Graph**: On `/investigation`, interact with the D3 force-directed node-link graph connecting Cases, Evidence, Artifacts, Devices, and Events. Click any node to inspect properties.
 7. **Report Compilation & PDF Download**: Go to `/reports`, click "Generate New Report", choose PDF or Markdown format, preview findings, and download the report file.
+
+---
+
+## 🚀 Cloud Deployment (Render)
+
+This project includes a **1-click Blueprint** ([`render.yaml`](./render.yaml)) and complete deployment instructions:
+
+- See [**DEPLOYMENT.md**](./DEPLOYMENT.md) for full step-by-step instructions.
+- Deploys **Backend Web Service** (`cyberforensics-backend`) with FastAPI on Python 3.11.
+- Deploys **Frontend Static Site** (`cyberforensics-frontend`) with React & SPA rewrites.
+
