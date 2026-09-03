@@ -5,7 +5,6 @@ services:
   - type: web
     name: cyberforensics-backend
     runtime: python
-    region: oregon
     plan: free
     rootDir: backend
     buildCommand: pip install --upgrade pip && pip install -r requirements.txt
