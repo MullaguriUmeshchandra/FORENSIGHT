@@ -36,7 +36,6 @@ services:
   - type: web
     name: cyberforensics-frontend
     runtime: static
-    region: oregon
     plan: free
     rootDir: frontend
     buildCommand: npm install && npm run build
@@ -53,4 +52,4 @@ services:
         fromService:
           type: web
           name: cyberforensics-backend
-          property: url
+          property: host
