@@ -1,8 +1,10 @@
 import os
 import json
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from app.api import api_router
 from app.database.session import init_db, SessionLocal
 from app.models.user import User, UserRole
@@ -10,137 +12,230 @@ from app.auth.security import get_password_hash
 from app.graph.neo4j_client import neo4j_client
 from app.utils.logger import logger
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Initialize Database tables
+    # ---------------------------------------
+    # Startup: Initialize Database
+    # ---------------------------------------
     logger.info("Initializing database tables...")
     init_db()
-    
+
+    # ---------------------------------------
     # Initialize Neo4j connection
+    # ---------------------------------------
     logger.info("Checking Neo4j connection...")
     neo4j_client.connect()
 
-    # Seed default Admin and Investigator users if empty
+    # ---------------------------------------
+    # Seed default users
+    # ---------------------------------------
     db = SessionLocal()
+
     try:
-        admin_user = db.query(User).filter(User.username == "admin").first()
+        admin_user = (
+            db.query(User)
+            .filter(User.username == "admin")
+            .first()
+        )
+
         if not admin_user:
-            logger.info("Seeding initial admin and investigator users...")
+            logger.info(
+                "Seeding initial admin and investigator users..."
+            )
+
             admin = User(
                 username="admin",
                 email="admin@forensics.local",
                 hashed_password=get_password_hash("Admin123!"),
                 full_name="Lead Forensic Administrator",
                 role=UserRole.ADMIN,
-                is_active=True
+                is_active=True,
             )
+
             investigator = User(
                 username="investigator",
                 email="investigator@forensics.local",
-                hashed_password=get_password_hash("Investigator123!"),
+                hashed_password=get_password_hash(
+                    "Investigator123!"
+                ),
                 full_name="Senior Digital Investigator",
                 role=UserRole.INVESTIGATOR,
-                is_active=True
+                is_active=True,
             )
+
             viewer = User(
                 username="viewer",
                 email="viewer@forensics.local",
                 hashed_password=get_password_hash("Viewer123!"),
                 full_name="Case Auditor / Viewer",
                 role=UserRole.VIEWER,
-                is_active=True
+                is_active=True,
             )
-            db.add_all([admin, investigator, viewer])
-            db.commit()
-            logger.info("Initial users seeded successfully (admin/Admin123!, investigator/Investigator123!, viewer/Viewer123!).")
 
-        # Seed initial Case (CASE-001) if no cases exist
-        from app.models.case import Case, CaseStatus
-        existing_case = db.query(Case).first()
-        if not existing_case:
-            inv_user = db.query(User).filter(User.username == "investigator").first()
-            default_case = Case(
-                case_number="CASE-001",
-                case_name="Insider Threat & Financial Exfiltration Investigation",
-                description="Digital forensics investigation regarding unauthorized credential usage, sensitive data exfiltration, and anti-forensics timestamp manipulation on corporate workstations.",
-                status=CaseStatus.IN_PROGRESS,
-                created_by=inv_user.id if inv_user else None
-            )
-            db.add(default_case)
+            db.add_all([
+                admin,
+                investigator,
+                viewer,
+            ])
+
             db.commit()
-            logger.info("Default case CASE-001 seeded successfully.")
+
+            logger.info(
+                "Initial users seeded successfully "
+                "(admin/Admin123!, "
+                "investigator/Investigator123!, "
+                "viewer/Viewer123!)."
+            )
+
+        # ---------------------------------------
+        # Seed baseline forensic case (CASE-001)
+        # ---------------------------------------
+        try:
+            from app.database.seed import seed_initial_demo_case
+            seed_initial_demo_case(db)
+        except Exception as seed_err:
+            logger.warning(f"Demo case auto-seeding encountered warning: {seed_err}")
+
     except Exception as e:
-        logger.error(f"Error seeding default users or case: {e}")
+        logger.error(
+            f"Error seeding default users: {e}"
+        )
+
     finally:
         db.close()
 
     yield
 
+    # ---------------------------------------
     # Shutdown
+    # ---------------------------------------
     logger.info("Shutting down application...")
     neo4j_client.close()
 
+
+# ==========================================
+# FastAPI Application
+# ==========================================
+
 app = FastAPI(
     title="AI Forensics Timeline Reconstruction API",
-    description="Backend and Database Foundation for Digital Forensic Timeline Reconstruction, Real Gap Calculation, Contradiction Detection, and Investigative Recommendations.",
+    description=(
+        "Backend and Database Foundation for Digital "
+        "Forensic Timeline Reconstruction, Real Gap "
+        "Calculation, Contradiction Detection, and "
+        "Investigative Recommendations."
+    ),
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
-# Configure CORS
-cors_env = os.getenv("CORS_ORIGINS", "")
-origins = []
-if cors_env:
-    try:
-        parsed = json.loads(cors_env)
-        if isinstance(parsed, list):
-            origins = parsed
-        else:
-            origins = [str(parsed)]
-    except Exception:
-        origins = [o.strip() for o in cors_env.split(",") if o.strip()]
 
-if not origins:
-    origins = [
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:5173",
-    ]
+# ==========================================
+# CORS CONFIGURATION (Render & Global Ready)
+# ==========================================
 
-# Allow any pages.dev (Cloudflare Pages), onrender.com subdomain, and local development origins by regex
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_origin_regex=r"https://.*\.pages\.dev|https://.*\.onrender\.com|http://(localhost|127\.0\.0\.1):\d+",
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Mount API routes
+
+# ==========================================
+# API ROUTES
+# ==========================================
+
 app.include_router(api_router)
 
-@app.api_route("/", methods=["GET", "HEAD"], tags=["System"])
-def root():
-    """Root status endpoint for container health probes and root domain inspection."""
-    return {
-        "status": "online",
-        "service": "AI Forensics Timeline Reconstruction API",
-        "docs": "/docs",
-        "health": "/health",
-        "database": "connected"
-    }
+
+# ==========================================
+# HEALTH CHECK
+# ==========================================
 
 @app.get("/health", tags=["System"])
 def health_check():
-    """System health check endpoint."""
+    """
+    System health check endpoint.
+    """
     return {
         "status": "healthy",
         "service": "AI Forensics Timeline Reconstruction Backend",
         "database": "connected",
-        "neo4j": "connected" if neo4j_client.is_available else "offline (resilient fallback active)"
+        "neo4j": (
+            "connected"
+            if neo4j_client.is_available
+            else "offline (resilient fallback active)"
+        ),
     }
+
+
+# ==========================================
+# FRONTEND SPA STATIC HOSTING (RENDER / PROD)
+# ==========================================
+
+from pathlib import Path
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, HTMLResponse
+from fastapi import HTTPException
+
+def get_frontend_dist():
+    possible_dist_dirs = [
+        Path(__file__).resolve().parent.parent.parent / "frontend" / "dist",
+        Path(__file__).resolve().parent.parent / "frontend" / "dist",
+        Path("./frontend/dist").resolve(),
+        Path("../frontend/dist").resolve(),
+        Path("./dist").resolve(),
+    ]
+    for d in possible_dist_dirs:
+        if d.exists() and (d / "index.html").exists():
+            return d
+    return None
+
+# Mount /assets directly using StaticFiles for high-performance, strict MIME handling
+_dist_dir = get_frontend_dist()
+if _dist_dir and (_dist_dir / "assets").is_dir():
+    app.mount("/assets", StaticFiles(directory=str(_dist_dir / "assets")), name="assets")
+
+@app.get("/{full_path:path}", include_in_schema=False)
+async def serve_spa_frontend(full_path: str):
+    # Don't intercept API, documentation, or health check routes
+    if (
+        full_path == "api"
+        or full_path.startswith("api/")
+        or full_path in ["docs", "redoc", "openapi.json", "health"]
+    ):
+        raise HTTPException(status_code=404, detail="Not Found")
+
+    dist = get_frontend_dist()
+    if not dist:
+        return HTMLResponse(
+            "<html><body style='font-family:sans-serif;padding:40px;text-align:center;background:#0f172a;color:#f8fafc;'>"
+            "<h2 style='color:#38bdf8;'>AI Forensics Timeline Reconstruction Backend</h2>"
+            "<p>API service is healthy and active. Explore interactive documentation at <a style='color:#60a5fa;' href='/docs'>/docs</a>.</p>"
+            "</body></html>"
+        )
+
+    target_file = dist / full_path
+    if full_path and target_file.is_file():
+        media_type = None
+        if full_path.endswith((".js", ".mjs")):
+            media_type = "application/javascript"
+        elif full_path.endswith(".css"):
+            media_type = "text/css"
+        elif full_path.endswith(".svg"):
+            media_type = "image/svg+xml"
+        elif full_path.endswith(".json"):
+            media_type = "application/json"
+        elif full_path.endswith(".png"):
+            media_type = "image/png"
+        elif full_path.endswith((".jpg", ".jpeg")):
+            media_type = "image/jpeg"
+        return FileResponse(target_file, media_type=media_type)
+
+    return FileResponse(dist / "index.html", media_type="text/html")

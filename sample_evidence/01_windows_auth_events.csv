@@ -1,0 +1,4 @@
+timestamp,event_type,device,event_description,source_ip,user_account,event_id
+2026-08-30T10:00:00Z,USER_LOGON,WORKSTATION-01,Windows Security Event ID 4624 (Logon Type 2 - Interactive),192.168.1.45,jdoe,4624
+2026-08-30T10:15:00Z,PRIVILEGE_ELEVATION,WORKSTATION-01,Windows Security Event ID 4672 (Special privileges assigned to logon),192.168.1.45,jdoe,4672
+2026-08-30T10:20:00Z,CREDENTIAL_ACCESS,WORKSTATION-01,Windows Security Event ID 4663 (Attempted read access to LSASS memory),192.168.1.45,SYSTEM,4663

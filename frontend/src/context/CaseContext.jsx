@@ -9,6 +9,7 @@ export const CaseProvider = ({ children }) => {
   const [cases, setCases] = useState([]);
   const [currentCase, setCurrentCase] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [initialLoaded, setInitialLoaded] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const fetchCases = async () => {
@@ -16,23 +17,37 @@ export const CaseProvider = ({ children }) => {
     setLoading(true);
     try {
       const res = await caseAPI.getCases();
-      const caseList = res.data.cases || [];
+      let caseList = res.data.cases || [];
+
+      // If database is clean/empty (e.g. fresh Render deployment), automatically seed demo case
+      if (caseList.length === 0) {
+        try {
+          const demoRes = await caseAPI.seedDemoCase();
+          if (demoRes?.data) {
+            caseList = [demoRes.data];
+          }
+        } catch (seedErr) {
+          console.warn('Auto-seed demo case failed:', seedErr);
+        }
+      }
+
       setCases(caseList);
 
-      // Auto-select first case (e.g. CASE-001) if not selected or current no longer valid
       if (caseList.length > 0) {
-        if (!currentCase || !caseList.find(c => c.id === currentCase.id)) {
-          setCurrentCase(caseList[0]);
-        } else {
-          // Update currentCase stats
-          const updated = caseList.find(c => c.id === currentCase.id);
-          setCurrentCase(updated);
-        }
+        const savedId = Number(localStorage.getItem('forensics_selected_case_id'));
+        const matched = caseList.find(c => c.id === savedId) ||
+                        (currentCase && caseList.find(c => c.id === currentCase.id)) ||
+                        caseList[0];
+        setCurrentCase(matched);
+        localStorage.setItem('forensics_selected_case_id', matched.id);
+      } else {
+        setCurrentCase(null);
       }
     } catch (err) {
       console.error('Failed to fetch cases:', err);
     } finally {
       setLoading(false);
+      setInitialLoaded(true);
     }
   };
 
@@ -44,7 +59,28 @@ export const CaseProvider = ({ children }) => {
     const selected = cases.find(c => c.id === Number(caseId));
     if (selected) {
       setCurrentCase(selected);
+      localStorage.setItem('forensics_selected_case_id', selected.id);
     }
+  };
+
+  const createNewCase = async (caseData) => {
+    const res = await caseAPI.createCase(caseData);
+    await fetchCases();
+    setCurrentCase(res.data);
+    if (res.data?.id) {
+      localStorage.setItem('forensics_selected_case_id', res.data.id);
+    }
+    return res.data;
+  };
+
+  const loadDemoCase = async () => {
+    const res = await caseAPI.seedDemoCase();
+    await fetchCases();
+    setCurrentCase(res.data);
+    if (res.data?.id) {
+      localStorage.setItem('forensics_selected_case_id', res.data.id);
+    }
+    return res.data;
   };
 
   const triggerRefresh = () => {
@@ -58,9 +94,12 @@ export const CaseProvider = ({ children }) => {
       setCurrentCase,
       selectCase,
       fetchCases,
+      createNewCase,
+      loadDemoCase,
       triggerRefresh,
       refreshKey,
-      loading
+      loading,
+      initialLoaded
     }}>
       {children}
     </CaseContext.Provider>

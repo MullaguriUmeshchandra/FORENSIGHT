@@ -8,7 +8,7 @@ import EmptyState from '../components/common/EmptyState';
 import { Lightbulb, CheckCircle, RefreshCw, Shield, ArrowUpRight, Check, Clock } from 'lucide-react';
 
 export const RecommendationsPage = () => {
-  const { currentCase, triggerRefresh } = useCase();
+  const { currentCase, initialLoaded, loadDemoCase, triggerRefresh } = useCase();
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -16,8 +16,8 @@ export const RecommendationsPage = () => {
 
   const fetchRecommendations = async () => {
     if (!currentCase) {
-      setLoading(false);
       setRecommendations([]);
+      setLoading(false);
       return;
     }
     setLoading(true);
@@ -34,8 +34,15 @@ export const RecommendationsPage = () => {
   };
 
   useEffect(() => {
-    fetchRecommendations();
-  }, [currentCase]);
+    if (initialLoaded) {
+      if (currentCase) {
+        fetchRecommendations();
+      } else {
+        setRecommendations([]);
+        setLoading(false);
+      }
+    }
+  }, [currentCase, initialLoaded]);
 
   const handleGenerate = async () => {
     if (!currentCase) return;
@@ -88,6 +95,13 @@ export const RecommendationsPage = () => {
         <LoadingState message="Formulating defensible recommendations..." />
       ) : error ? (
         <ErrorState message={error} onRetry={fetchRecommendations} />
+      ) : !currentCase ? (
+        <EmptyState
+          title="No Active Case Selected"
+          description="Select an existing case from the top bar or load the baseline demonstration case to view recommendations."
+          actionLabel="Load Demo Scenario"
+          onAction={loadDemoCase}
+        />
       ) : recommendations.length === 0 ? (
         <EmptyState
           title="No Recommendations Formulated"

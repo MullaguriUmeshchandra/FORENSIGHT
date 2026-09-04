@@ -6,13 +6,13 @@ export const KnowledgeGraph = ({ graphData, onSelectNode }) => {
   const containerRef = useRef(null);
 
   useEffect(() => {
+    // Clear previous SVG
+    d3.select(svgRef.current).selectAll('*').remove();
+
     if (!graphData || !graphData.nodes || graphData.nodes.length === 0) return;
 
     const width = containerRef.current?.clientWidth || 700;
     const height = 450;
-
-    // Clear previous SVG
-    d3.select(svgRef.current).selectAll('*').remove();
 
     const svg = d3.select(svgRef.current)
       .attr('width', width)
@@ -29,9 +29,16 @@ export const KnowledgeGraph = ({ graphData, onSelectNode }) => {
       Source: '#64748b',     // Slate
     };
 
-    // Prepare links and nodes deep copies for D3 force simulation
-    const nodes = graphData.nodes.map(d => ({ ...d }));
-    const links = graphData.links.map(d => ({ ...d }));
+    // Prepare links and nodes deep copies for D3 force simulation with reference validation
+    const nodes = (graphData.nodes || []).map(d => ({ ...d }));
+    const nodeIds = new Set(nodes.map(n => n.id));
+    const links = (graphData.links || [])
+      .filter(l => {
+        const sId = typeof l.source === 'object' ? l.source?.id : l.source;
+        const tId = typeof l.target === 'object' ? l.target?.id : l.target;
+        return nodeIds.has(sId) && nodeIds.has(tId);
+      })
+      .map(d => ({ ...d }));
 
     const simulation = d3.forceSimulation(nodes)
       .force('link', d3.forceLink(links).id(d => d.id).distance(90))
@@ -131,9 +138,17 @@ export const KnowledgeGraph = ({ graphData, onSelectNode }) => {
     return () => simulation.stop();
   }, [graphData]);
 
+  const hasNodes = graphData?.nodes && graphData.nodes.length > 0;
+
   return (
-    <div ref={containerRef} className="w-full bg-slate-900/5 rounded-xl border border-slate-200 overflow-hidden relative">
-      <svg ref={svgRef} className="w-full h-[450px]"></svg>
+    <div ref={containerRef} className="w-full bg-slate-900/5 rounded-xl border border-slate-200 overflow-hidden relative min-h-[450px] flex items-center justify-center">
+      {hasNodes ? (
+        <svg ref={svgRef} className="w-full h-[450px]"></svg>
+      ) : (
+        <div className="text-center p-8 text-slate-400 text-xs font-semibold">
+          No relationship entities discovered yet. Ingest evidence files or load the demonstration case to generate the knowledge graph.
+        </div>
+      )}
     </div>
   );
 };

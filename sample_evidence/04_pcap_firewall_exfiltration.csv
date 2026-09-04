@@ -1,0 +1,4 @@
+timestamp,event_type,device,event_description,destination_ip,bytes_transferred
+2026-08-30T10:46:00Z,NETWORK_OUTBOUND,WORKSTATION-01,High-volume HTTPS connection to unknown external IP,198.51.100.77:443,48291040
+2026-08-30T10:50:00Z,DNS_QUERY,WORKSTATION-01,DNS lookup for suspicious staging domain vault-sync-c2.net,1.1.1.1,512
+2026-08-30T10:55:00Z,LOG_CLEAR,WORKSTATION-01,Windows Security Event Log 1102 (Audit log cleared),WORKSTATION-01,0

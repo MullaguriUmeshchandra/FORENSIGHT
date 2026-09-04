@@ -10,7 +10,7 @@ import KnowledgeGraph from '../components/investigation/KnowledgeGraph';
 import { Network, AlertOctagon, HelpCircle, CheckCircle2, CircleDot, AlertTriangle, Layers, Info } from 'lucide-react';
 
 export const InvestigationPage = () => {
-  const { currentCase } = useCase();
+  const { currentCase, initialLoaded, loadDemoCase } = useCase();
   const [graphData, setGraphData] = useState(null);
   const [contradictions, setContradictions] = useState([]);
   const [gaps, setGaps] = useState([]);
@@ -23,11 +23,11 @@ export const InvestigationPage = () => {
 
   const fetchInvestigationData = async () => {
     if (!currentCase) {
-      setLoading(false);
       setGraphData(null);
       setContradictions([]);
       setGaps([]);
       setTimelineEvents([]);
+      setLoading(false);
       return;
     }
     setLoading(true);
@@ -52,8 +52,18 @@ export const InvestigationPage = () => {
   };
 
   useEffect(() => {
-    fetchInvestigationData();
-  }, [currentCase]);
+    if (initialLoaded) {
+      if (currentCase) {
+        fetchInvestigationData();
+      } else {
+        setGraphData(null);
+        setContradictions([]);
+        setGaps([]);
+        setTimelineEvents([]);
+        setLoading(false);
+      }
+    }
+  }, [currentCase, initialLoaded]);
 
   const confirmedEvents = timelineEvents.filter(e => e.status === 'CONFIRMED');
   const inferredEvents = timelineEvents.filter(e => e.status === 'INFERRED');
@@ -75,6 +85,13 @@ export const InvestigationPage = () => {
         <LoadingState message="Building Neo4j knowledge graph relationships..." />
       ) : error ? (
         <ErrorState message={error} onRetry={fetchInvestigationData} />
+      ) : !currentCase ? (
+        <EmptyState
+          title="No Active Case Selected"
+          description="Select an existing case from the top bar or load the baseline demonstration case to explore the knowledge graph."
+          actionLabel="Load Demo Scenario"
+          onAction={loadDemoCase}
+        />
       ) : (
         <>
           {/* Section 1: Neo4j Relationship Knowledge Graph */}

@@ -1,0 +1,5 @@
+timestamp,event_type,device,event_description,artifact_path,file_hash
+2026-08-30T10:21:00Z,PROCESS_EXECUTION,WORKSTATION-01,PowerShell launched with encoded parameters (-EncodedCommand JABz...),C:\Windows\System32\powershell.exe,e3b0c44298fc1c149afbf4c8996fb924
+2026-08-30T10:28:00Z,USB_ATTACH,WORKSTATION-01,Removable USB storage attached (Kingston DataTraveler 3.0 SN: 00187D6B9921),USBSTOR\DiskKingston_00187D,00187D6B9921
+2026-08-30T10:41:00Z,FILE_ACCESS,WORKSTATION-01,Sensitive document accessed and read (Q3_Ledger_Confidential.xlsx),C:\Finance\Q3_Ledger_Confidential.xlsx,8f4b23a789bcde21
+2026-08-30T10:43:00Z,FILE_MODIFICATION,WORKSTATION-01,Encrypted archive container created in temp folder,C:\Users\jdoe\AppData\Local\Temp\vault_backup.zip,90218734bcfe8923

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CaseProvider } from './context/CaseContext';
 
@@ -17,7 +17,7 @@ import ReportsPage from './pages/ReportsPage';
 import SettingsPage from './pages/SettingsPage';
 
 // Protected App Layout Component
-const ProtectedLayout = ({ children }) => {
+const ProtectedLayout = () => {
   const { user, loading } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -44,7 +44,7 @@ const ProtectedLayout = ({ children }) => {
           <Topbar setMobileOpen={setMobileOpen} />
 
           <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
-            {children}
+            <Outlet />
           </main>
         </div>
       </div>
@@ -59,14 +59,18 @@ export function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
 
-          <Route path="/dashboard" element={<ProtectedLayout><DashboardPage /></ProtectedLayout>} />
-          <Route path="/evidence" element={<ProtectedLayout><EvidencePage /></ProtectedLayout>} />
-          <Route path="/timeline" element={<ProtectedLayout><TimelinePage /></ProtectedLayout>} />
-          <Route path="/gaps" element={<ProtectedLayout><GapsPage /></ProtectedLayout>} />
-          <Route path="/recommendations" element={<ProtectedLayout><RecommendationsPage /></ProtectedLayout>} />
-          <Route path="/investigation" element={<ProtectedLayout><InvestigationPage /></ProtectedLayout>} />
-          <Route path="/reports" element={<ProtectedLayout><ReportsPage /></ProtectedLayout>} />
-          <Route path="/settings" element={<ProtectedLayout><SettingsPage /></ProtectedLayout>} />
+          {/* Persistent Protected Layout */}
+          <Route element={<ProtectedLayout />}>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/evidence" element={<EvidencePage />} />
+            <Route path="/timeline" element={<TimelinePage />} />
+            <Route path="/gaps" element={<GapsPage />} />
+            <Route path="/recommendations" element={<RecommendationsPage />} />
+            <Route path="/investigation" element={<InvestigationPage />} />
+            <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+          </Route>
 
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>

@@ -7,7 +7,18 @@ from app.services.case_service import CaseService
 from app.auth.dependencies import get_current_user, require_investigator, require_admin
 from app.models.user import User
 
+from app.database.seed import seed_initial_demo_case
+
 router = APIRouter(prefix="/cases", tags=["Case Management"])
+
+@router.post("/seed-demo", response_model=CaseResponse)
+def seed_demo_case_route(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_investigator)
+):
+    """Seed baseline CASE-001 demonstration investigation scenario."""
+    case = seed_initial_demo_case(db)
+    return CaseService.get_case(db=db, case_id=case.id)
 
 @router.post("", response_model=CaseResponse, status_code=status.HTTP_201_CREATED)
 def create_case(

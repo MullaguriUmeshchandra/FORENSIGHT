@@ -1,17 +1,34 @@
 import axios from 'axios';
 
-const rawBaseUrl = import.meta.env.VITE_API_BASE_URL || '/api';
-let cleanBaseUrl = rawBaseUrl.endsWith('/') ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
-if (cleanBaseUrl && !cleanBaseUrl.startsWith('http://') && !cleanBaseUrl.startsWith('https://') && !cleanBaseUrl.startsWith('/')) {
-  cleanBaseUrl = `https://${cleanBaseUrl}`;
-}
-if (cleanBaseUrl.startsWith('http') && !cleanBaseUrl.endsWith('/api')) {
-  cleanBaseUrl = `${cleanBaseUrl}/api`;
-}
-const API_BASE_URL = cleanBaseUrl;
+const resolveApiBaseUrl = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL.replace(/\/+$/, '');
+  }
+  if (typeof window !== 'undefined') {
+    if (window.__VITE_API_URL__) {
+      return window.__VITE_API_URL__.replace(/\/+$/, '');
+    }
+    const storedApi = localStorage.getItem('forensics_api_url');
+    if (storedApi) {
+      return storedApi.replace(/\/+$/, '');
+    }
+
+    const { hostname, port } = window.location;
+    // Local Vite dev server on port 5173 communicates with backend on port 8000
+    if ((hostname === 'localhost' || hostname === '127.0.0.1') && port === '5173') {
+      return 'http://127.0.0.1:8000/api';
+    }
+    // In production or when served by backend/reverse proxy on same host
+    return '/api';
+  }
+  return 'http://127.0.0.1:8000/api';
+};
+
+export const API_BASE_URL = resolveApiBaseUrl();
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 60000, // 60s timeout to gracefully accommodate Render free-tier cold starts
   headers: {
     'Content-Type': 'application/json',
   },
@@ -56,6 +73,14 @@ export const caseAPI = {
   createCase: (data) => api.post('/cases', data),
   updateCase: (id, data) => api.put(`/cases/${id}`, data),
   deleteCase: (id) => api.delete(`/cases/${id}`),
+  seedDemoCase: () => api.post('/cases/seed-demo'),
+};
+
+export const systemAPI = {
+  getHealth: () => {
+    const healthUrl = API_BASE_URL.replace(/\/api\/?$/, '') + '/health';
+    return axios.get(healthUrl);
+  },
 };
 
 export const dashboardAPI = {
@@ -101,10 +126,21 @@ export const investigationAPI = {
 export const reportAPI = {
   getReports: (caseId) => api.get(`/reports?case_id=${caseId}`),
   generateReport: (caseId, title, format = 'MARKDOWN') => api.post('/reports', { case_id: caseId, title, report_format: format }),
-  downloadReport: (id) => api.get(`/reports/${id}/download`, { responseType: 'blob' }),
   getDownloadUrl: (id) => {
     const token = localStorage.getItem('forensics_token');
-    return `${API_BASE_URL}/reports/${id}/download${token ? `?token=${encodeURIComponent(token)}` : ''}`;
+    return `${API_BASE_URL}/reports/${id}/download${token ? `?token=${token}` : ''}`;
+  },
+  downloadReport: async (id, defaultFilename = 'forensic_report.md') => {
+    const response = await api.get(`/reports/${id}/download`, { responseType: 'blob' });
+    const blob = new Blob([response.data], { type: 'text/markdown' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = defaultFilename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
   },
 };
 

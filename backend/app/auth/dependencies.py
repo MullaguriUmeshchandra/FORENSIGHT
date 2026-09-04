@@ -1,5 +1,5 @@
 from typing import List, Optional
-from fastapi import Depends, HTTPException, Query, status
+from fastapi import Depends, HTTPException, status, Query
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from app.database.session import get_db
@@ -9,21 +9,21 @@ from app.auth.jwt import decode_access_token
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=False)
 
 def get_current_user(
-    header_token: Optional[str] = Depends(oauth2_scheme),
+    token: Optional[str] = Depends(oauth2_scheme),
     query_token: Optional[str] = Query(None, alias="token"),
     db: Session = Depends(get_db)
 ) -> User:
-    """Dependency to retrieve the currently authenticated user from Bearer token or token query param."""
-    token = header_token or query_token
+    """Dependency to retrieve the currently authenticated user from Bearer token or query parameter."""
+    effective_token = token or query_token
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials or token has expired",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    if not token:
+    if not effective_token:
         raise credentials_exception
         
-    token_data = decode_access_token(token)
+    token_data = decode_access_token(effective_token)
     if token_data is None or token_data.user_id is None:
         raise credentials_exception
         

@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { systemAPI } from '../services/api';
 import StatusBadge from '../components/common/StatusBadge';
 import { User, Shield, Server, Sliders, Database, HardDrive, CheckCircle } from 'lucide-react';
-import axios from 'axios';
 
 export const SettingsPage = () => {
   const { user } = useAuth();
   const [health, setHealth] = useState(null);
 
   useEffect(() => {
-    axios.get('/health')
+    systemAPI.getHealth()
       .then(res => setHealth(res.data))
-      .catch(() => setHealth({ status: 'offline', database: 'error' }));
+      .catch(() => setHealth({ status: 'offline', database: 'error', neo4j: 'offline' }));
   }, []);
 
   return (

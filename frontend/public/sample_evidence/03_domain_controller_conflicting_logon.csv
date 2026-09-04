@@ -1,0 +1,2 @@
+timestamp,event_type,device,event_description,source_ip,user_account
+2026-08-30T10:28:15Z,USER_LOGON,LAPTOP-02,Concurrent interactive user session initiated on separate physical host,192.168.1.188,jdoe

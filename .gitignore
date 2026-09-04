@@ -20,8 +20,14 @@ ENV/
 
 # Database files
 *.db
+*.db-shm
+*.db-wal
 *.sqlite
 *.sqlite3
+
+# Nested or temporary files
+-w
+CYBERFORENSICS-/
 
 # Node
 node_modules/

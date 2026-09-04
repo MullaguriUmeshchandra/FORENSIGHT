@@ -9,7 +9,7 @@ import Modal from '../components/common/Modal';
 import { FileText, Download, Plus, RefreshCw, Eye, Calendar, ShieldCheck, CheckCircle } from 'lucide-react';
 
 export const ReportsPage = () => {
-  const { currentCase, triggerRefresh } = useCase();
+  const { currentCase, initialLoaded, loadDemoCase, triggerRefresh } = useCase();
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -22,8 +22,8 @@ export const ReportsPage = () => {
 
   const fetchReports = async () => {
     if (!currentCase) {
-      setLoading(false);
       setReports([]);
+      setLoading(false);
       return;
     }
     setLoading(true);
@@ -40,8 +40,15 @@ export const ReportsPage = () => {
   };
 
   useEffect(() => {
-    fetchReports();
-  }, [currentCase]);
+    if (initialLoaded) {
+      if (currentCase) {
+        fetchReports();
+      } else {
+        setReports([]);
+        setLoading(false);
+      }
+    }
+  }, [currentCase, initialLoaded]);
 
   const handleGenerate = async (e) => {
     e.preventDefault();
@@ -62,26 +69,14 @@ export const ReportsPage = () => {
 
   const handleDownload = async (report) => {
     const reportId = typeof report === 'object' ? report.id : report;
-    const format = typeof report === 'object' ? report.report_format : 'MARKDOWN';
-    const title = typeof report === 'object' ? report.title : `report_${reportId}`;
-
+    const title = (typeof report === 'object' && report.title) ? report.title : `forensic_report_${reportId}`;
+    const safeTitle = `${title.replace(/[^a-zA-Z0-9_-]/g, '_')}.md`;
     try {
-      const res = await reportAPI.downloadReport(reportId);
-      const ext = format === 'JSON' ? 'json' : format === 'PDF' ? 'pdf' : 'md';
-      const cleanTitle = title.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 40);
-      const blob = new Blob([res.data]);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${cleanTitle}.${ext}`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      await reportAPI.downloadReport(reportId, safeTitle);
     } catch (err) {
-      console.warn('Direct blob download failed, trying authenticated link fallback:', err);
-      const directUrl = reportAPI.getDownloadUrl(reportId);
-      window.open(directUrl, '_blank');
+      console.warn('Direct blob download failed, falling back to URL:', err);
+      const url = reportAPI.getDownloadUrl(reportId);
+      window.open(url, '_blank');
     }
   };
 
@@ -111,6 +106,13 @@ export const ReportsPage = () => {
         <LoadingState message="Fetching forensic reports..." />
       ) : error ? (
         <ErrorState message={error} onRetry={fetchReports} />
+      ) : !currentCase ? (
+        <EmptyState
+          title="No Active Case Selected"
+          description="Select an existing case from the top bar or load the baseline demonstration case to view or create reports."
+          actionLabel="Load Demo Scenario"
+          onAction={loadDemoCase}
+        />
       ) : reports.length === 0 ? (
         <EmptyState
           title="No Reports Generated"

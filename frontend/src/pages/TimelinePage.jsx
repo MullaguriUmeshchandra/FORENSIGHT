@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useCase } from '../context/CaseContext';
 import { timelineAPI, gapAPI } from '../services/api';
 import StatusBadge from '../components/common/StatusBadge';
@@ -9,7 +10,8 @@ import Modal from '../components/common/Modal';
 import { Clock, AlertTriangle, RefreshCw, Layers, ShieldCheck, ChevronRight, Info, HardDrive } from 'lucide-react';
 
 export const TimelinePage = () => {
-  const { currentCase, refreshKey, triggerRefresh } = useCase();
+  const navigate = useNavigate();
+  const { currentCase, refreshKey, triggerRefresh, initialLoaded, loadDemoCase } = useCase();
   const [events, setEvents] = useState([]);
   const [gaps, setGaps] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -19,9 +21,9 @@ export const TimelinePage = () => {
 
   const fetchTimelineData = async () => {
     if (!currentCase) {
-      setLoading(false);
       setEvents([]);
       setGaps([]);
+      setLoading(false);
       return;
     }
     setLoading(true);
@@ -42,8 +44,10 @@ export const TimelinePage = () => {
   };
 
   useEffect(() => {
-    fetchTimelineData();
-  }, [currentCase, refreshKey]);
+    if (initialLoaded) {
+      fetchTimelineData();
+    }
+  }, [currentCase, refreshKey, initialLoaded]);
 
   const handleRebuild = async () => {
     if (!currentCase) return;
@@ -91,12 +95,19 @@ export const TimelinePage = () => {
         <LoadingState message="Reconstructing chronological timeline..." />
       ) : error ? (
         <ErrorState message={error} onRetry={fetchTimelineData} />
+      ) : !currentCase ? (
+        <EmptyState
+          title="No Active Case Selected"
+          description="Select an existing case from the top bar or load the baseline demonstration case to view timeline events."
+          actionLabel="Load Demo Scenario"
+          onAction={loadDemoCase}
+        />
       ) : events.length === 0 ? (
         <EmptyState
           title="Timeline Empty"
           description="No events found for this case. Upload evidence files to build the chronological timeline."
           actionLabel="Upload Evidence"
-          onAction={() => window.location.href = '/evidence'}
+          onAction={() => navigate('/evidence')}
         />
       ) : (
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">

@@ -9,7 +9,7 @@ import Modal from '../components/common/Modal';
 import { AlertTriangle, Clock, RefreshCw, ChevronRight, HelpCircle, FileSearch } from 'lucide-react';
 
 export const GapsPage = () => {
-  const { currentCase } = useCase();
+  const { currentCase, initialLoaded, loadDemoCase } = useCase();
   const [gapData, setGapData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [detecting, setDetecting] = useState(false);
@@ -18,8 +18,8 @@ export const GapsPage = () => {
 
   const fetchGaps = async () => {
     if (!currentCase) {
+      setGapData(null);
       setLoading(false);
-      setGapData({ gaps: [], total_gaps: 0 });
       return;
     }
     setLoading(true);
@@ -36,8 +36,15 @@ export const GapsPage = () => {
   };
 
   useEffect(() => {
-    fetchGaps();
-  }, [currentCase]);
+    if (initialLoaded) {
+      if (currentCase) {
+        fetchGaps();
+      } else {
+        setGapData(null);
+        setLoading(false);
+      }
+    }
+  }, [currentCase, initialLoaded]);
 
   const handleRunDetection = async () => {
     if (!currentCase) return;
@@ -114,6 +121,13 @@ export const GapsPage = () => {
         <LoadingState message="Executing mathematical gap analysis..." />
       ) : error ? (
         <ErrorState message={error} onRetry={fetchGaps} />
+      ) : !currentCase ? (
+        <EmptyState
+          title="No Active Case Selected"
+          description="Select an existing case from the top bar or load the baseline demonstration case to analyze temporal gaps."
+          actionLabel="Load Demo Scenario"
+          onAction={loadDemoCase}
+        />
       ) : gaps.length === 0 ? (
         <EmptyState
           title="No Gaps Detected"

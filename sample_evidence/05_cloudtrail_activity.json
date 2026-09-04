@@ -1,0 +1,18 @@
+[
+  {
+    "eventTime": "2026-08-30T10:48:00Z",
+    "eventName": "GetObject",
+    "eventSource": "s3.amazonaws.com",
+    "recipientAccountId": "123456789012",
+    "sourceIPAddress": "198.51.100.77",
+    "userAgent": "aws-cli/2.15.0 Python/3.11.6",
+    "requestParameters": {
+      "bucketName": "corp-finance-confidential-vault",
+      "key": "Q3_Ledger_Confidential.xlsx"
+    },
+    "responseElements": null,
+    "additionalEventData": {
+      "bytesTransferredOut": 15849200
+    }
+  }
+]
